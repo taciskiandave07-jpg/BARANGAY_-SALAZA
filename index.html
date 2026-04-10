@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adullam Church Portal</title>
+    <style>
+        /* DESIGN: Navy Blue with Stripes */
+        body {
+            background-color: #000080;
+            background-image: repeating-linear-gradient(45deg, #000066, #000066 10px, #000080 10px, #000080 20px);
+            color: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #FFD700;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* CREATIVE BUTTONS */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .login-btn {
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 114, 255, 0.3);
+        }
+
+        .logout-btn {
+            background: linear-gradient(45deg, #f85032, #e73827);
+            color: white;
+            box-shadow: 0 4px 15px rgba(231, 56, 39, 0.3);
+        }
+
+        .admin-btn { background: #333; color: #FFD700; }
+
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.2); }
+
+        /* KJV VERSE STYLE */
+        .kjv-box {
+            background: #fff8e1;
+            padding: 15px;
+            border-left: 5px solid #FFD700;
+            font-style: italic;
+            margin: 20px 0;
+        }
+
+        /* TABLES & INPUTS */
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background: #000080; color: white; }
+        input { padding: 8px; width: 90%; border: 1px solid #ccc; border-radius: 5px; }
+
+        /* CALCULATOR */
+        .calculator {
+            background: #222;
+            padding: 15px;
+            border-radius: 10px;
+            width: 260px;
+            color: white;
+        }
+        .calc-screen { width: 100%; height: 40px; margin-bottom: 10px; text-align: right; font-size: 1.2rem; }
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+        .calc-grid button { padding: 10px; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>ADULLAM BIBLE BAPTIST CHURCH</h1>
+        <h2 style="color: #000080;">PALAUIG MISSION</h2>
+        <div style="float: right;">
+            <button class="btn login-btn" onclick="toggleView('login-form')">Login/Register</button>
+            <button class="btn logout-btn" onclick="location.reload()">Logout</button>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+
+    <div id="home-view">
+        <div class="kjv-box">
+            <p>"Upon the first day of the week let every one of you lay by him in store, as God hath prospered him, that there be no gatherings when I come."</p>
+            <strong>— 1 Corinthians 16:2 (KJV)</strong>
+        </div>
+
+        <h3>Member Giving Portal</h3>
+        <p>Welcome to our online giving monitor. Please login to see your records.</p>
+    </div>
+
+    <div id="login-form" class="hidden">
+        <h3>Member Access</h3>
+        <input type="text" id="username" placeholder="Full Name"><br><br>
+        <input type="password" id="pass" placeholder="Password"><br><br>
+        <button class="btn login-btn" onclick="toggleView('member-dashboard')">Enter Portal</button>
+        <button class="btn admin-btn" onclick="toggleView('admin-panel')">Admin Access</button>
+    </div>
+
+    <div id="member-dashboard" class="hidden">
+        <h3>Welcome, Member!</h3>
+        <table>
+            <tr><th>Category</th><th>Amount</th></tr>
+            <tr><td>Tithes</td><td><input type="number" class="giving-input" id="t1" value="0"></td></tr>
+            <tr><td>Offering</td><td><input type="number" class="giving-input" id="o1" value="0"></td></tr>
+            <tr><td>Lot Fund</td><td><input type="number" class="giving-input" id="l1" value="0"></td></tr>
+            <tr><td>Mission</td><td><input type="number" class="giving-input" id="m1" value="0"></td></tr>
+            <tr><td>Anniversary</td><td><input type="number" class="giving-input" id="a1" value="0"></td></tr>
+        </table>
+        <h4>Total: <span id="memberTotal">0</span></h4>
+        <button class="btn login-btn" onclick="calculate('giving-input', 'memberTotal')">Compute Sum</button>
+        <button class="btn" style="background:#28a745; color:white;" onclick="exportExcel()">Export to Excel</button>
+    </div>
+
+    <div id="admin-panel" class="hidden">
+        <h2 style="color: red;">ADMIN CONTROL CENTER</h2>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1;">
+                <h4>Manage Service Records</h4>
+                <p>Record total collected for the service:</p>
+                <input type="number" class="admin-sum" placeholder="Total Service Tithes"><br><br>
+                <input type="number" class="admin-sum" placeholder="Total Service Missions"><br><br>
+                <button class="btn admin-btn" onclick="calculate('admin-sum', 'serviceTotal')">Sum Total Service</button>
+                <h3>Total: <span id="serviceTotal">0</span></h3>
+            </div>
+
+            <div class="calculator">
+                <h4>Quick Calculator</h4>
+                <input type="text" id="screen" class="calc-screen" readonly>
+                <div class="calc-grid">
+                    <button onclick="press('7')">7</button><button onclick="press('8')">8</button><button onclick="press('9')">9</button><button onclick="press('/')">/</button>
+                    <button onclick="press('4')">4</button><button onclick="press('5')">5</button><button onclick="press('6')">6</button><button onclick="press('*')">*</button>
+                    <button onclick="press('1')">1</button><button onclick="press('2')">2</button><button onclick="press('3')">3</button><button onclick="press('-')">-</button>
+                    <button onclick="press('0')">0</button><button onclick="cls()">C</button><button onclick="eq()">=</button><button onclick="press('+')">+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Navigation logic
+    function toggleView(viewId) {
+        document.getElementById('home-view').classList.add('hidden');
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('member-dashboard').classList.add('hidden');
+        document.getElementById('admin-panel').classList.add('hidden');
+        document.getElementById(viewId).classList.remove('hidden');
+    }
+
+    // Calculation logic
+    function calculate(inputClass, outputId) {
+        let inputs = document.getElementsByClassName(inputClass);
+        let total = 0;
+        for(let i=0; i<inputs.length; i++) {
+            total += parseFloat(inputs[i].value) || 0;
+        }
+        document.getElementById(outputId).innerText = total.toLocaleString();
+    }
+
+    // Excel Export logic
+    function exportExcel() {
+        let rows = [["Category", "Amount"]];
+        rows.push(["Tithes", document.getElementById('t1').value]);
+        rows.push(["Offering", document.getElementById('o1').value]);
+        rows.push(["Missions", document.getElementById('m1').value]);
+        
+        let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+        let encodedUri = encodeURI(csvContent);
+        let link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Giving_Report.csv");
+        document.body.appendChild(link);
+        link.click();
+    }
+
+    // Calculator functions
+    let exp = "";
+    function press(v) { exp += v; document.getElementById('screen').value = exp; }
+    function cls() { exp = ""; document.getElementById('screen').value = ""; }
+    function eq() { try { exp = eval(exp); document.getElementById('screen').value = exp; } catch(e) { alert("Error"); cls(); } }
+</script>
+
+</body>
+</html>
