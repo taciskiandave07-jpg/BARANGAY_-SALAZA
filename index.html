@@ -1,264 +1,515 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barangay Salaza Portal | Palauig, Zambales</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        cyber: {
-                            950: '#030712',
-                            900: '#0b0f19',
-                            800: '#111827',
-                            700: '#1f2937',
-                            600: '#374151',
-                            accent: '#06b6d4',
-                            glow: '#3b82f6',
-                            neon: '#10b981'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- FontAwesome Icons -->
+    <title>Barangay Salaza Portal</title>
+    <!-- Google Fonts & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Leaflet CSS for interactive maps -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .glass-panel {
-            background: rgba(17, 24, 39, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        :root {
+            --bg-gradient: linear-gradient(135deg, #090d16 0%, #11102b 50%, #02040a 100%);
+            --glass-bg: rgba(22, 32, 54, 0.55);
+            --glass-border: rgba(255, 255, 255, 0.07);
+            --accent-blue: #38bdf8;
+            --accent-neon: #818cf8;
+            --accent-green: #34d399;
+            --accent-crimson: #f43f5e;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
         }
-        .glass-card {
-            background: rgba(31, 41, 55, 0.6);
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            perspective: 1200px;
+        }
+
+        /* 1. INTRO SPLASH ANIMATION */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #020617;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            animation: fadeOutSplash 1s ease 2.5s forwards; /* Reduced duration slightly for developer sanity */
+        }
+
+        .splash-logo {
+            font-size: 90px;
+            color: var(--accent-blue);
+            text-shadow: 0 0 30px rgba(56, 189, 248, 0.7);
+            transform: scale(0.3) rotate(-30deg);
+            animation: popLogo 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s forwards;
+        }
+
+        .splash-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 36px;
+            letter-spacing: 5px;
+            margin-top: 25px;
+            color: #fff;
+            opacity: 0;
+            transform: translateY(40px);
+            animation: slideTitle 1.2s ease 1.3s forwards;
+        }
+
+        @keyframes popLogo {
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        @keyframes slideTitle {
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeOutSplash {
+            100% { opacity: 0; visibility: hidden; pointer-events: none; }
+        }
+
+        /* AUTH MODALS */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 6, 23, 0.9);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        .neon-glow {
-            box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.3);
+        .hidden { display: none !important; }
+
+        /* 3D GLASS CARD STYLING */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4), 
+                        inset 0 1px 2px rgba(255,255,255,0.1);
+            transform-style: preserve-3d;
+            transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease;
+            margin-bottom: 25px;
         }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #030712; }
-        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+        .glass-card:hover {
+            transform: translateY(-4px) rotateX(2deg);
+            box-shadow: 0 40px 70px rgba(56, 189, 248, 0.08), inset 0 1px 3px rgba(255,255,255,0.2);
+        }
+
+        .auth-card { width: 100%; max-width: 450px; }
+
+        /* MAIN APP CONTAINER WITH DRAWER DESIGN LAYOUT */
+        #app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* LEFT SIDEBAR / DRAWER NAV */
+        nav.sidebar-drawer {
+            width: 280px;
+            background: rgba(10, 15, 30, 0.75);
+            backdrop-filter: blur(25px);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            padding: 25px 20px;
+            position: fixed;
+            height: 100vh;
+            z-index: 500;
+        }
+
+        .drawer-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .drawer-logo {
+            width: 65px;
+            height: 65px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-neon));
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+            font-size: 30px;
+            color: #fff;
+        }
+
+        .drawer-brand h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 1.5px;
+            background: linear-gradient(to right, #fff, var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .drawer-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex-grow: 1;
+        }
+
+        .drawer-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            padding: 14px 18px;
+            border-radius: 12px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .drawer-btn i {
+            font-size: 18px;
+            width: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .drawer-btn:hover {
+            background: rgba(255, 255, 255, 0.03);
+            color: #fff;
+            transform: translateX(4px);
+        }
+
+        .drawer-btn.active {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(129, 140, 248, 0.15));
+            border-color: rgba(56, 189, 248, 0.3);
+            color: var(--accent-blue);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .drawer-btn.active i {
+            transform: scale(1.15);
+        }
+
+        /* MAIN APP VIEWSTREAM */
+        .viewport {
+            flex-grow: 1;
+            margin-left: 280px;
+            padding: 40px 5%;
+            min-height: 100vh;
+        }
+
+        .view-section {
+            animation: fadeInView 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeInView {
+            0% { opacity: 0; transform: translateY(15px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* TOP CONTEXT BAR */
+        .context-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+        }
+
+        /* GLOBAL FORM DESIGN Elements */
+        .form-group { margin-bottom: 18px; }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+        input, textarea, select {
+            width: 100%;
+            background: rgba(10, 15, 30, 0.7);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 14px;
+            color: #fff;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+        }
+        input[type="date"]::-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        /* BUTTON ENGINE */
+        .btn {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-neon));
+            color: #fff;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(56, 189, 248, 0.4);
+        }
+        .btn-secondary { background: transparent; border: 1px solid var(--text-muted); color: #fff; }
+        .btn-secondary:hover { background: rgba(255,255,255,0.05); box-shadow: none; transform: translateY(-1px); }
+        .btn-danger { background: linear-gradient(135deg, var(--accent-crimson), #be123c); }
+        .btn-danger:hover { box-shadow: 0 10px 20px rgba(244, 63, 94, 0.4); }
+        .btn-success { background: linear-gradient(135deg, var(--accent-green), #047857); color: #000; }
+        .btn-success:hover { box-shadow: 0 10px 20px rgba(52, 211, 153, 0.4); }
+
+        /* ADMIN NOTICES & CONTROL BADGES */
+        .admin-badge {
+            background: linear-gradient(135deg, var(--accent-crimson), #be123c);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .admin-controls {
+            background: rgba(244, 63, 94, 0.06);
+            border: 1px dashed var(--accent-crimson);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* BULLETINS */
+        .announcement-box {
+            background: rgba(56, 189, 248, 0.04);
+            border-left: 4px solid var(--accent-blue);
+            padding: 20px;
+            border-radius: 0 14px 14px 0;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        /* ISSUE GRID TRACKER & SYSTEM BOARDS */
+        .feed-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
+        }
+        .issue-card {
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+        }
+        .issue-img {
+            width: 100%; height: 200px; object-fit: cover;
+            background: #090d16; display: flex; align-items: center;
+            justify-content: center; color: var(--text-muted);
+        }
+        .issue-body { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        
+        /* STATUS SYSTEM REGULATION */
+        .status-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 30px;
+            font-size: 12px; font-weight: bold; text-transform: uppercase; margin-bottom: 12px;
+            width: fit-content;
+        }
+        .status-pending { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .status-resolved { background: rgba(52, 211, 153, 0.2); color: var(--accent-green); }
+        .status-unavailable { background: rgba(244, 63, 94, 0.2); color: var(--accent-crimson); }
+
+        /* DATA REGISTRATION TABLES */
+        .portal-table-wrapper {
+            overflow-x: auto;
+            margin-top: 20px;
+            background: rgba(10, 15, 30, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+        }
+        .portal-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 15px;
+        }
+        .portal-table th {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 14px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .portal-table td {
+            padding: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .portal-table tr:last-child td { border: none; }
+
+        /* RECEIPT TERMINAL DESIGN */
+        .receipt-box {
+            background: #ffffff;
+            color: #0b0f19;
+            padding: 25px;
+            border-radius: 12px;
+            font-family: monospace;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.15), 0 15px 30px rgba(0,0,0,0.3);
+            line-height: 1.5;
+        }
+        .receipt-header {
+            text-align: center; border-bottom: 2px dashed #0b0f19;
+            padding-bottom: 12px; margin-bottom: 15px; font-weight: bold;
+        }
+
+        /* RAPID HOTLINES */
+        .hotline-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 15px;
+        }
+        .hotline-item {
+            background: rgba(10, 15, 30, 0.4);
+            padding: 16px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-left: 4px solid var(--accent-crimson);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        /* DIRECTORY SLOTS WITH IMAGES */
+        .officials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 25px;
+        }
+        .official-member {
+            background: rgba(22, 32, 54, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px; padding: 0 0 20px 0; text-align: center;
+            position: relative; overflow: hidden;
+        }
+        .official-avatar {
+            width: 100%; height: 220px; object-fit: cover;
+            border-bottom: 1px solid var(--glass-border);
+            background: #090d16; margin-bottom: 15px;
+        }
+        .official-info { padding: 0 15px; }
+        .official-name { font-weight: 700; font-size: 19px; color: #fff; margin-bottom: 4px; }
+        .official-role { font-size: 14px; color: var(--accent-blue); letter-spacing: 0.5px; }
     </style>
 </head>
-<body class="bg-cyber-950 text-gray-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-white">
+<body>
 
-    <!-- Top Navbar -->
-    <header class="sticky top-0 z-50 glass-panel border-b border-gray-800 px-4 lg:px-8 py-3 flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-            <button id="sidebarToggle" class="lg:hidden text-gray-400 hover:text-white focus:outline-none p-2 rounded-lg bg-gray-800/50">
-                <i class="fa-solid fa-bars text-lg"></i>
-            </button>
-            <div class="flex items-center space-x-2">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center neon-glow">
-                    <i class="fa-solid fa-shield-halved text-white text-lg"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold tracking-wider text-sm lg:text-base bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">BARANGAY SALAZA</h1>
-                    <p class="text-[10px] text-gray-400 uppercase tracking-widest">Palauig, Zambales, PH</p>
-                </div>
+    <!-- 1. INITIAL SYSTEM SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div class="splash-logo"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="splash-title">BARANGAY SALAZA PORTAL</div>
+    </div>
+
+    <!-- 2. SYSTEM GATE ENTRY GATEWAY MODALS -->
+    <div id="auth-modal" class="modal-overlay">
+        <!-- LOGIN VIEW -->
+        <div id="login-card" class="glass-card auth-card">
+            <h2 class="section-title" style="margin-bottom:20px;"><i class="fa-solid fa-lock"></i> Gate Entry Login</h2>
+            <div class="form-group">
+                <label>Username / Resident Code</label>
+                <input type="text" id="login-user" placeholder="Enter Code or 'Salaza'">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="login-pass" placeholder="••••••••">
+            </div>
+            <button class="btn" onclick="attemptLogin()" style="width: 100%; justify-content: center;">Access Portal System</button>
+            <div style="margin-top: 20px; text-align: center; font-size: 14px;">
+                <a href="#" onclick="toggleAuthView('signup')" style="color: var(--accent-blue); text-decoration: none; font-weight:600;">New Resident Account Registration</a><br><br>
+                <a href="#" onclick="toggleAuthView('forgot')" style="color: var(--text-muted); text-decoration: none;">Forgot or Reset Password?</a>
             </div>
         </div>
 
-        <div class="flex items-center space-x-3">
-            <span class="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-400 animate-pulse"></span> ONLINE
-            </span>
-            <div id="authHeaderContainer">
-                <button onclick="openAuthModal('login')" class="flex items-center space-x-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium text-sm transition shadow-lg shadow-cyan-900/40">
-                    <i class="fa-solid fa-user-lock"></i>
-                    <span>Login / Register</span>
-                </button>
+        <!-- SIGNUP VIEW -->
+        <div id="signup-card" class="glass-card auth-card hidden">
+            <h2 class="section-title" style="margin-bottom:20px;"><i class="fa-solid fa-user-plus"></i> Account Sign Up</h2>
+            <div class="form-group">
+                <label>Create Username (Use your unique Barangay Salaza Code)</label>
+                <input type="text" id="signup-code" placeholder="e.g. SALAZA-1029-2026">
             </div>
+            <div class="form-group">
+                <label>Create Password</label>
+                <input type="password" id="signup-pass" placeholder="••••••••">
+            </div>
+            <button class="btn" onclick="processSignup()" style="width: 100%; justify-content: center;">Register Profile</button>
+            <p style="margin-top: 20px; text-align: center;"><a href="#" onclick="toggleAuthView('login')" style="color: var(--accent-blue); text-decoration: none;">Return to Login</a></p>
         </div>
-    </header>
 
-    <div class="flex-1 flex overflow-hidden relative">
-        <!-- Sidebar Navigation -->
-        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 glass-panel border-r border-gray-800 flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out pt-20 lg:pt-0">
-            <div class="p-4 border-b border-gray-800/80 hidden lg:flex items-center space-x-3 mt-1">
-                <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400">
-                    <i class="fa-solid fa-terminal"></i>
-                </div>
-                <span class="text-xs font-mono text-cyan-400 tracking-wider">PORTAL SYSTEM v3.5</span>
+        <!-- FORGOT CREDENTIALS VIEW -->
+        <div id="forgot-card" class="glass-card auth-card hidden">
+            <h2 class="section-title" style="margin-bottom:20px;"><i class="fa-solid fa-key"></i> Password Recovery</h2>
+            <div class="form-group">
+                <label>Enter Registered Username/Code</label>
+                <input type="text" id="forgot-code" placeholder="Your account code">
+            </div>
+            <div class="form-group">
+                <label>Type New Password</label>
+                <input type="password" id="forgot-new-pass" placeholder="••••••••">
+            </div>
+            <button class="btn" onclick="processPasswordReset()" style="width: 100%; justify-content: center;">Override Credentials</button>
+            <p style="margin-top: 20px; text-align: center;"><a href="#" onclick="toggleAuthView('login')" style="color: var(--accent-blue); text-decoration: none;">Cancel</a></p>
+        </div>
+    </div>
+
+
+    <!-- 3. MAIN PORTAL DESKTOP SYSTEM ENVIRONMENT -->
+    <div id="app-container" class="hidden">
+        
+        <!-- CONTROL DRAWER BAR DESIGN -->
+        <nav class="sidebar-drawer">
+            <div class="drawer-brand">
+                <div class="drawer-logo"><i class="fa-solid fa-shield-halved"></i></div>
+                <h1>BARANGAY SALAZA<br><span style="font-size:12px; opacity:0.7;">PORTAL SYSTEM</span></h1>
             </div>
 
-            <nav class="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
-                <a href="#" onclick="switchView('bulletin')" id="nav-bulletin" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                    <i class="fa-solid fa-bullhorn w-5"></i>
-                    <span>Bulletin & News</span>
-                </a>
-                <a href="#" onclick="switchView('maps')" id="nav-maps" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800/50 transition">
-                    <i class="fa-solid fa-map-location-dot w-5 text-cyan-400"></i>
-                    <span>Salaza Map & Location</span>
-                </a>
-                <a href="#" onclick="switchView('vehicle')" id="nav-vehicle" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800/50 transition">
-                    <i class="fa-solid fa-truck-pickup w-5"></i>
-                    <span>Vehicle & Facility Booking</span>
-                </a>
-                <a href="#" onclick="switchView('issues')" id="nav-issues" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800/50 transition">
-                    <i class="fa-solid fa-triangle-exclamation w-5"></i>
-                    <span>Issue Reports</span>
-                </a>
-                <a href="#" onclick="switchView('clearance')" id="nav-clearance" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800/50 transition">
-                    <i class="fa-solid fa-file-invoice w-5"></i>
-                    <span>Document Clearance Generator</span>
-                </a>
-                <a href="#" onclick="switchView('hotlines')" id="nav-hotlines" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800/50 transition">
-                    <i class="fa-solid fa-phone-volume w-5"></i>
-                    <span>Emergency Hotlines</span>
-                </a>
-                <a href="#" onclick="switchView('officials')" id="nav-officials" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800/50 transition">
-                    <i class="fa-solid fa-users-rectangle w-5"></i>
-                    <span>Barangay Officials</span>
-                </a>
-            </nav>
-
-            <div class="p-4 border-t border-gray-800 bg-gray-900/40 flex items-center justify-between">
-                <div class="flex items-center space-x-3 overflow-hidden">
-                    <div class="w-9 h-9 rounded-full bg-cyan-900/40 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-semibold shrink-0" id="userAvatar">
-                        G
-                    </div>
-                    <div class="overflow-hidden">
-                        <p class="text-sm font-medium truncate text-gray-200" id="userNameDisplay">Guest Resident</p>
-                        <p class="text-xs text-gray-400 truncate" id="userRoleDisplay">Public Viewer</p>
-                    </div>
-                </div>
-                <button id="sidebarLogoutBtn" onclick="logout()" class="hidden text-rose-400 hover:text-rose-300 p-2 rounded-lg hover:bg-rose-500/10 transition" title="Log Out">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </button>
-            </div>
-        </aside>
-
-        <!-- Backdrop for mobile sidebar -->
-        <div id="sidebarBackdrop" class="fixed inset-0 bg-black/60 z-30 hidden lg:hidden backdrop-blur-sm"></div>
-
-        <!-- Main Content Area -->
-        <main class="flex-1 lg:ml-72 overflow-y-auto p-4 lg:p-8 bg-cyber-950">
-
-            <!-- 1. BULLETIN VIEW -->
-            <div id="view-bulletin" class="space-y-6 max-w-6xl mx-auto view-section">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-cyan-900/30 via-blue-900/20 to-transparent p-6 rounded-2xl border border-cyan-500/20 neon-glow">
-                    <div>
-                        <span class="text-xs font-semibold uppercase tracking-widest text-cyan-400">Official Updates</span>
-                        <h2 class="text-2xl lg:text-3xl font-bold text-white mt-1">Barangay Salaza Bulletin</h2>
-                        <p class="text-sm text-gray-300 mt-1">Latest announcements and executive orders from the Barangay Hall.</p>
-                    </div>
-                    <button onclick="openPostModal()" id="adminPostBtn" class="hidden px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-bold rounded-xl text-sm transition shadow-lg shadow-cyan-500/30 flex items-center space-x-2">
-                        <i class="fa-solid fa-plus"></i><span>Create Announcement (Admin)</span>
-                    </button>
-                </div>
-
-                <div id="bulletinFeed" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Dynamic posts -->
-                </div>
-            </div>
-
-            <!-- 2. MAPS & LOCATION VIEW -->
-            <div id="view-maps" class="space-y-6 max-w-6xl mx-auto view-section hidden">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-emerald-900/30 via-cyan-900/20 to-transparent p-6 rounded-2xl border border-emerald-500/20">
-                    <div>
-                        <span class="text-xs font-semibold uppercase tracking-widest text-emerald-400">Geographic Data</span>
-                        <h2 class="text-2xl lg:text-3xl font-bold text-white mt-1">Salaza, Palauig, Zambales Map</h2>
-                        <p class="text-sm text-gray-300 mt-1">Interactive map highlighting key landmarks, schools, and barangay facilities in Salaza.</p>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="flyToLocation(15.4541, 119.9553, 15)" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-medium transition">
-                            <i class="fa-solid fa-crosshairs mr-1.5"></i> Salaza Center
-                        </button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 glass-card rounded-2xl overflow-hidden border border-gray-800 h-[500px] relative shadow-2xl">
-                        <div id="salazaMap" class="w-full h-full z-10"></div>
-                    </div>
-
-                    <div class="glass-card p-6 rounded-2xl border border-gray-800 flex flex-col justify-between space-y-4">
-                        <div>
-                            <h3 class="text-lg font-bold text-white mb-2 flex items-center">
-                                <i class="fa-solid fa-location-dot text-emerald-400 mr-2"></i> Key Salaza Landmarks
-                            </h3>
-                            <p class="text-xs text-gray-400 mb-4">Click any location below to center the interactive map:</p>
-                            
-                            <div class="space-y-3">
-                                <div onclick="flyToLocation(15.4541, 119.9553, 17)" class="p-3 rounded-xl bg-gray-900/60 hover:bg-emerald-950/40 border border-gray-800 hover:border-emerald-500/40 cursor-pointer transition">
-                                    <div class="font-semibold text-sm text-emerald-300">Barangay Salaza Hall</div>
-                                    <div class="text-xs text-gray-400">Administrative center & health station</div>
-                                </div>
-                                <div onclick="flyToLocation(15.4580, 119.9520, 17)" class="p-3 rounded-xl bg-gray-900/60 hover:bg-emerald-950/40 border border-gray-800 hover:border-emerald-500/40 cursor-pointer transition">
-                                    <div class="font-semibold text-sm text-emerald-300">Salaza Elementary School</div>
-                                    <div class="text-xs text-gray-400">Primary educational institution</div>
-                                </div>
-                                <div onclick="flyToLocation(15.4500, 119.9480, 16)" class="p-3 rounded-xl bg-gray-900/60 hover:bg-emerald-950/40 border border-gray-800 hover:border-emerald-500/40 cursor-pointer transition">
-                                    <div class="font-semibold text-sm text-emerald-300">Salaza Coastal Area</div>
-                                    <div class="text-xs text-gray-400">Fisherfolk community & coastal zone</div>
-                                </div>
-                                <div onclick="flyToLocation(15.4650, 119.9600, 16)" class="p-3 rounded-xl bg-gray-900/60 hover:bg-emerald-950/40 border border-gray-800 hover:border-emerald-500/40 cursor-pointer transition">
-                                    <div class="font-semibold text-sm text-emerald-300">Mt. Tapulao Trailhead Area</div>
-                                    <div class="text-xs text-gray-400">Eco-tourism & Zambales mountain trail</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/20 text-xs text-cyan-300">
-                            <i class="fa-solid fa-circle-info mr-1"></i> Palauig is a 3rd class municipality in Zambales, Central Luzon, Philippines.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. VEHICLE & FACILITY BOOKING VIEW -->
-            <div id="view-vehicle" class="space-y-6 max-w-6xl mx-auto view-section hidden">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-blue-900/30 via-indigo-900/20 to-transparent p-6 rounded-2xl border border-blue-500/20">
-                    <div>
-                        <span class="text-xs font-semibold uppercase tracking-widest text-blue-400">Community Logistics</span>
-                        <h2 class="text-2xl lg:text-3xl font-bold text-white mt-1">Vehicle & Facility Booking</h2>
-                        <p class="text-sm text-gray-300 mt-1">Reserve the Barangay Ambulance, Service Multicab, or Salaza Covered Court.</p>
-                    </div>
-                    <button onclick="openBookingModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition shadow-lg shadow-blue-600/30 flex items-center space-x-2">
-                        <i class="fa-solid fa-calendar-plus"></i><span>New Reservation</span>
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div class="glass-card p-5 rounded-2xl border border-gray-800 flex flex-col justify-between">
-                        <div>
-                            <div class="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl mb-4">
-                                <i class="fa-solid fa-truck-medical"></i>
-                            </div>
-                            <h3 class="text-lg font-bold text-white">Barangay Ambulance</h3>
-                            <p class="text-xs text-gray-400 mt-1">Emergency medical transport for residents to hospital.</p>
-                        </div>
-                        <div class="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center text-xs">
-                            <span class="text-emerald-400 font-medium"><i class="fa-solid fa-check-circle mr-1"></i> Available</span>
-                            <button onclick="selectBookingAsset('Barangay Ambulance')" class="text-cyan-400 hover:underline font-medium">Book Now &rarr;</button>
-                        </div>
-                    </div>
-
-                    <div class="glass-card p-5 rounded-2xl border border-gray-800 flex flex-col justify-between">
-                        <div>
-                            <div class="w-12 h-12 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xl mb-4">
-                                <i class="fa-solid fa-truck-pickup"></i>
-                            </div>
-                            <h3 class="text-lg font-bold text-white">Service Multicab</h3>
-                            <p class="text-xs text-gray-400 mt-1">Utility vehicle for official barangay transport and hauling.</p>
-                        </div>
-                        <div class="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center text-xs">
-                            <span class="text-emerald-400 font-medium"><i class="fa-solid fa-check-circle mr-1
+            <div class="drawer-menu">
+                <button class="drawer-btn active" onclick="switchView('view-bulletin', this)"><i class="fa-solid fa-bullhorn"></i> Bulletins</button>
+                <button class="drawer-btn" onclick="switchView('view-vehicle', this)"><i class="fa-solid fa-truck-ramp-box"></i> Vehicle Dispatch</button>
+                <button class="drawer-btn" onclick="switchView('view-issues', this)"><i class="fa-solid fa-circle-exclamation"></i> Issue Reports</button>
+                <button class="drawer-btn" onclick="switchView('view-clearance', this)"><i class="fa-solid fa-file-invoice"></
